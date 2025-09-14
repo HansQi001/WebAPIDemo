@@ -8,7 +8,7 @@ namespace WebAPIDemo.APIApp.Controllers
     public class WeatherForecastController : ControllerBase
     {
         [HttpGet]
-        public IEnumerable<WeatherForecast> GetWeatherForecast()
+        public ActionResult<IEnumerable<WeatherForecast>> GetWeatherForecast()
         {
             var summaries = new[] { "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching" };
             var forecast = Enumerable.Range(1, 5).Select(index =>
@@ -19,7 +19,7 @@ namespace WebAPIDemo.APIApp.Controllers
                                     summaries[Random.Shared.Next(summaries.Length)]
                                 ))
                             .ToArray();
-            return forecast;
+            return Ok(forecast);
         }
     }
 }
