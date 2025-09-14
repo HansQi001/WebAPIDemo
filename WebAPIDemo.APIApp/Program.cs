@@ -1,12 +1,13 @@
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
+using Asp.Versioning.Conventions;
 using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using WebAPIDemo.APIApp.Configurations;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+var mvc = builder.Services.AddControllers();
 
 // API versioning
 builder.Services
@@ -22,7 +23,21 @@ builder.Services
         );
 
     })
-    .AddMvc()
+    .AddMvc(mvcOptions => {
+        // deprecate v1 for ALL controllers,
+        // enumerate discovered controllers and apply the convention.
+        var feature = new Microsoft.AspNetCore.Mvc.Controllers.ControllerFeature();
+        // Populate discovered controllers using the same PartManager
+        mvc.PartManager.PopulateFeature(feature);
+
+        foreach (var controller in feature.Controllers)
+        {
+            mvcOptions.Conventions
+                .Controller(controller.AsType())
+                .HasDeprecatedApiVersion(1.0);
+        }
+
+    })
     .AddApiExplorer(options =>
     {
         options.GroupNameFormat = "'v'VVV";

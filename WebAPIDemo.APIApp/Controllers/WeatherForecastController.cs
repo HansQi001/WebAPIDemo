@@ -1,12 +1,9 @@
-﻿using Asp.Versioning;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using WebAPIDemo.APIApp.Models;
 
 namespace WebAPIDemo.APIApp.Controllers
 {
-    [ApiVersion(1.0, Deprecated = true)]
-    [Route("api/v{version:apiVersion}/[controller]")]
-    //[Route("api/[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
     public class WeatherForecastController : ControllerBase
     {
@@ -14,7 +11,7 @@ namespace WebAPIDemo.APIApp.Controllers
         public ActionResult<IEnumerable<WeatherForecast>> GetWeatherForecast()
         {
             var summaries = new[] { "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching" };
-            var forecast = Enumerable.Range(1, 5).Select(index =>
+            var forecast = Enumerable.Range(1, 2).Select(index =>
                                 new WeatherForecast
                                 (
                                     DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
