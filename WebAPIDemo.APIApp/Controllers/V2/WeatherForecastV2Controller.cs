@@ -2,9 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using WebAPIDemo.APIApp.Models;
 
-namespace WebAPIDemo.APIApp.Controllers
+namespace WebAPIDemo.APIApp.Controllers.V2
 {
-    [ApiVersion(1.0, Deprecated = true)]
+    [ApiVersion("2.0")]
     [Route("api/v{version:apiVersion}/[controller]")]
     //[Route("api/[controller]")]
     [ApiController]
@@ -14,7 +14,7 @@ namespace WebAPIDemo.APIApp.Controllers
         public ActionResult<IEnumerable<WeatherForecast>> GetWeatherForecast()
         {
             var summaries = new[] { "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching" };
-            var forecast = Enumerable.Range(1, 5).Select(index =>
+            var forecast = Enumerable.Range(1, 10).Select(index =>
                                 new WeatherForecast
                                 (
                                     DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
