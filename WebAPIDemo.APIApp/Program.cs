@@ -1,9 +1,13 @@
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
 using Asp.Versioning.Conventions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using WebAPIDemo.APIApp.Configurations;
+using WebAPIDemo.Domain.Interfaces;
+using WebAPIDemo.Infrastructure.Data;
+using WebAPIDemo.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,7 +27,8 @@ builder.Services
         );
 
     })
-    .AddMvc(mvcOptions => {
+    .AddMvc(mvcOptions =>
+    {
         // deprecate v1 for ALL controllers,
         // enumerate discovered controllers and apply the convention.
         var feature = new Microsoft.AspNetCore.Mvc.Controllers.ControllerFeature();
@@ -47,8 +52,14 @@ builder.Services
 // swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
+// swagger page for each version
 builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseInMemoryDatabase("DemoDb"));
+
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
 
 
 var app = builder.Build();
