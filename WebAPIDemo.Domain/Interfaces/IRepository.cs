@@ -8,5 +8,6 @@
         Task<int> SaveChangesAsync();
         Task<bool> ExistAsync(int id);
         Task<int> DeleteByIdAsync(int id);
+        Task AddRangeAsync(IEnumerable<T> entities);
     }
 }

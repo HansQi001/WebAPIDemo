@@ -31,11 +31,16 @@ namespace WebAPIDemo.Infrastructure.Repositories
             if (!await ExistAsync(id))
                 return 0;
 
-            _dbSet.Remove((T)Activator.CreateInstance(typeof(T), new object[] { })!);
-            _context.Entry(_dbSet.Local.Last()).Property("Id").CurrentValue = id;
+            var entity = Activator.CreateInstance<T>();
+            _context.Entry(entity).Property("Id").CurrentValue = id;
+
+            _dbSet.Remove(entity);
 
             return await SaveChangesAsync();
         }
+
+        public async Task AddRangeAsync(IEnumerable<T> entities)
+            => await _dbSet.AddRangeAsync(entities);
 
         public async Task<int> SaveChangesAsync()
             => await _context.SaveChangesAsync();
