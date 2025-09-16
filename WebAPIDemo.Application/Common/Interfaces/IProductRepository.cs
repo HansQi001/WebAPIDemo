@@ -1,7 +1,7 @@
 ﻿using WebAPIDemo.Application.Products.DTOs;
 using WebAPIDemo.Domain.Entities;
 
-namespace WebAPIDemo.Domain.Interfaces
+namespace WebAPIDemo.Application.Common.Interfaces
 {
     public interface IProductRepository : IRepository<Product>
     {

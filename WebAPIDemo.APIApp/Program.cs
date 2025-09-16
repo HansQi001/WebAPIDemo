@@ -1,13 +1,20 @@
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
 using Asp.Versioning.Conventions;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Text;
 using WebAPIDemo.APIApp.Configurations;
-using WebAPIDemo.Domain.Interfaces;
+using WebAPIDemo.Application.Common.Interfaces;
+using WebAPIDemo.Application.Services;
+using WebAPIDemo.Application.Users.Services;
 using WebAPIDemo.Infrastructure.Data;
 using WebAPIDemo.Infrastructure.Repositories;
+using WebAPIDemo.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,9 +28,9 @@ builder.Services
         options.DefaultApiVersion = new ApiVersion(1, 0);
         options.ReportApiVersions = true;
         options.ApiVersionReader = ApiVersionReader.Combine(
-            new UrlSegmentApiVersionReader(),
-            new HeaderApiVersionReader("X-Api-Version"),
-            new QueryStringApiVersionReader("api-version")
+            new UrlSegmentApiVersionReader()//,
+                                            //new HeaderApiVersionReader("X-Api-Version"),
+                                            //new QueryStringApiVersionReader("api-version")
         );
 
     })
@@ -51,16 +58,68 @@ builder.Services
 
 // swagger
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    // Define the BearerAuth scheme
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter 'Bearer' [space] and then your valid token.\n\nExample: \"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\""
+    });
+
+    // Apply the scheme globally to all operations
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 // swagger page for each version
 builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseInMemoryDatabase("DemoDb"));
 
+builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
+
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IAuthService, JwtAuthService>();
 
+var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]!);
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(key)
+    };
+});
 
 var app = builder.Build();
 
@@ -87,6 +146,10 @@ app.UseSwaggerUI(options =>
 //}
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
 
 app.MapControllers();
 
