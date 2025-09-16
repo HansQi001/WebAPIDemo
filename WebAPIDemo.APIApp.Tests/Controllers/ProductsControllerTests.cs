@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Net.Http.Headers;
+using WebAPIDemo.APIApp.Tests.Auth;
 using WebAPIDemo.APIApp.Tests.Factories;
 
 namespace WebAPIDemo.APIApp.Tests.Controllers
@@ -12,7 +13,7 @@ namespace WebAPIDemo.APIApp.Tests.Controllers
         {
             _client = factory.CreateClient();
             _client.DefaultRequestHeaders.Authorization =
-                new AuthenticationHeaderValue("Test");
+                new AuthenticationHeaderValue(FakeAuthHandler.AuthenticationScheme);
         }
 
         [Fact]

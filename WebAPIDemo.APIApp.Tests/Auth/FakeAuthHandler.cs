@@ -9,6 +9,8 @@ namespace WebAPIDemo.APIApp.Tests.Auth;
 
 public class FakeAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
+    public const string AuthenticationScheme = "Test";
+
     public FakeAuthHandler(IOptionsMonitor<AuthenticationSchemeOptions> options,
     ILoggerFactory logger,
     UrlEncoder encoder)
