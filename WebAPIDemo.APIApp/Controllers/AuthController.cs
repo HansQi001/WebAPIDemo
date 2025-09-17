@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using WebAPIDemo.Application.Common.Interfaces;
 using WebAPIDemo.Application.Users.DTOs;
 
@@ -17,8 +18,8 @@ namespace WebAPIDemo.APIApp.Controllers
             _authService = authService;
         }
 
-        [HttpPost]
-        [Route("login")]
+        [HttpPost("Login")]
+        [AllowAnonymous]
         public async Task<IActionResult> Login(LoginDTO dto)
         {
             var token = await _userService.AuthenticateAsync(dto);
@@ -26,17 +27,6 @@ namespace WebAPIDemo.APIApp.Controllers
             if (string.IsNullOrEmpty(token)) return Unauthorized();
 
             return Ok(new { token });
-        }
-
-        [HttpPost]
-        [Route("create")]
-        public async Task<IActionResult> Create([FromBody] CreateUserRequest request)
-        {
-            var user = await _userService.CreateAsync(request);
-
-            if (user == null) { return BadRequest(); }
-
-            return CreatedAtAction(nameof(Create), new { id = user.Id }, user);
         }
     }
 }

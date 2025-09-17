@@ -17,13 +17,21 @@ namespace WebAPIDemo.APIApp.Tests.Controllers
         }
 
         [Fact]
-        public async Task PostWithoutBody_Returns415()
+        public async Task PostWithNoBody_Returns415()
+        {
+            // the Url is case-sensitive, it can't be "api/products" here
+            var response = await _client.PostAsync("api/Products", null);
+
+            Assert.Equal(HttpStatusCode.UnsupportedMediaType, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task Get_Returns200()
         {
             // the Url is case-sensitive, it can't be "api/products" here
             var response = await _client.GetAsync("api/Products");
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
         }
     }
 }

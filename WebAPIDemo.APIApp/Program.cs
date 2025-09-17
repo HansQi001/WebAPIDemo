@@ -7,11 +7,13 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Reflection.Emit;
 using System.Text;
 using WebAPIDemo.APIApp.Configurations;
 using WebAPIDemo.Application.Common.Interfaces;
 using WebAPIDemo.Application.Services;
 using WebAPIDemo.Application.Users.Services;
+using WebAPIDemo.Domain.Entities;
 using WebAPIDemo.Infrastructure.Data;
 using WebAPIDemo.Infrastructure.Repositories;
 using WebAPIDemo.Infrastructure.Services;
@@ -125,6 +127,41 @@ if (!builder.Environment.IsEnvironment("Testing"))
 }
 
 var app = builder.Build();
+
+// Runtime seeding for test purpose
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    //db.Database.Migrate(); // applies migrations if needed
+    var passwordHaser = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
+
+    if (!db.Users.Any())
+    {
+        db.Users.Add(
+        new User { Username = "Hans", PasswordHash = passwordHaser.Hash("1234"), Email = "qihang001@outlook.com" }
+        );
+    }
+
+    if (builder.Environment.IsDevelopment()
+            || builder.Environment.IsEnvironment("Testing"))
+    {
+        if (!db.Products.Any())
+        {
+            var products = Enumerable.Range(1, 100)
+                    .Select(i => new Product
+                    {
+                        Name = $"Product {i}",
+                        Price = Math.Round((decimal)(i * 0.5), 2),
+                        Stock = i % 100
+                    })
+                    .ToArray();
+
+            db.Products.AddRange(products);
+        }
+    }
+
+    db.SaveChanges();
+}
 
 app.UseSwagger();
 

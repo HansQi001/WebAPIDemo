@@ -88,25 +88,5 @@ namespace WebAPIDemo.APIApp.Controllers
 
             return Ok(existing);
         }
-
-        [HttpPost]
-        [Route("CreateTestData/{count}")]
-        [AllowAnonymous]
-        public async Task<IActionResult> CreateTestData(int count = 500)
-        {
-            var products = Enumerable.Range(1, count)
-                    .Select(i => new Product
-                    {
-                        Name = $"Product {i}",
-                        Price = Math.Round((decimal)(i * 0.5), 2),
-                        Stock = i % 100
-                    })
-                    .ToList();
-
-            await _productRepo.AddRangeAsync(products);
-            await _productRepo.SaveChangesAsync();
-
-            return Ok();
-        }
     }
 }
