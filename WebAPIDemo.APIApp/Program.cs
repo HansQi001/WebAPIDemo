@@ -7,7 +7,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
-using System.Reflection.Emit;
 using System.Text;
 using WebAPIDemo.APIApp.Configurations;
 using WebAPIDemo.Application.Common.Interfaces;
@@ -65,12 +64,12 @@ builder.Services.AddSwaggerGen(c =>
     // Define the BearerAuth scheme
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Name = builder.Configuration["Jwt:SecurityName"],
+        Name = builder.Configuration["Swagger:SecurityName"],
         Type = SecuritySchemeType.ApiKey,
-        Scheme = builder.Configuration["Jwt:SecurityScheme"],
-        BearerFormat = builder.Configuration["Jwt:BearerFormat"],
+        Scheme = builder.Configuration["Swagger:SecurityScheme"],
+        BearerFormat = builder.Configuration["Swagger:BearerFormat"],
         In = ParameterLocation.Header,
-        Description = builder.Configuration["Jwt:BearerDescription"]
+        Description = builder.Configuration["Swagger:BearerDescription"]
     });
 
     // Apply the scheme globally to all operations
