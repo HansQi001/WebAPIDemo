@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 using WebAPIDemo.Application.Common.Interfaces;
 using WebAPIDemo.Application.Products.DTOs;
 using WebAPIDemo.Domain.Entities;
@@ -19,9 +20,17 @@ namespace WebAPIDemo.APIApp.Controllers
         }
 
         [HttpGet]
-        public IAsyncEnumerable<ProductSummaryDTO> GetAll()
+        public async Task GetAll()
         {
-            return _productRepo.GetAllAsync();
+            var response = HttpContext.Response;
+            response.ContentType = "application/x-ndjson";
+
+            await foreach (var product in _productRepo.GetAllAsync())
+            {
+                var json = JsonSerializer.Serialize(product);
+                await response.WriteAsync(json + "\n");
+                await response.Body.FlushAsync();
+            }
         }
 
         [HttpPost]

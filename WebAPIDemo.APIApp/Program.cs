@@ -146,7 +146,7 @@ using (var scope = app.Services.CreateScope())
     {
         if (!db.Products.Any())
         {
-            var products = Enumerable.Range(1, 100)
+            var products = Enumerable.Range(1, 1000)
                     .Select(i => new Product
                     {
                         Name = $"Product {i}",
