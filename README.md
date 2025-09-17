@@ -1,0 +1,11 @@
+- It's hosted on Azure as an app service with API Manager at the front
+-  The user "Hans/1234" was created at run time, so we can use it to fetch Jwt token at "/api/Auth/Login"
+- Visit the Swagger UI
+  - Swagger UI page address: https://webapidemo-g8hhepfng7dqa2hx.australiaeast-01.azurewebsites.net/
+  - Fetch Jwt token with { "username": "Hans", "password": "1234" }, and Click "Authorize" button to fill it
+- Access via Postman
+  - Target Url: https://apimanagerdemo.azure-api.net
+  - Add key-value pair "Ocp-Apim-Subscription-Key/abd4a7cbf38a40b6914d522ac78b1ba4" into the header
+  - Fetch Jwt token from "api/Auth/Login"
+  - Add another key-value pair "Authorization/Bearer [Jwt-token]" into the header
+  - Visit the function listed in Swagger UI, for example, get from "https://apimanagerdemo.azure-api.net/api/Products" with the header key-value pairs
