@@ -1,13 +1,21 @@
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
 using Asp.Versioning.Conventions;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Text;
 using WebAPIDemo.APIApp.Configurations;
-using WebAPIDemo.Domain.Interfaces;
+using WebAPIDemo.Application.Common.Interfaces;
+using WebAPIDemo.Application.Services;
+using WebAPIDemo.Application.Users.Services;
+using WebAPIDemo.Domain.Entities;
 using WebAPIDemo.Infrastructure.Data;
 using WebAPIDemo.Infrastructure.Repositories;
+using WebAPIDemo.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,9 +29,9 @@ builder.Services
         options.DefaultApiVersion = new ApiVersion(1, 0);
         options.ReportApiVersions = true;
         options.ApiVersionReader = ApiVersionReader.Combine(
-            new UrlSegmentApiVersionReader(),
-            new HeaderApiVersionReader("X-Api-Version"),
-            new QueryStringApiVersionReader("api-version")
+            new UrlSegmentApiVersionReader()//,
+                                            //new HeaderApiVersionReader("X-Api-Version"),
+                                            //new QueryStringApiVersionReader("api-version")
         );
 
     })
@@ -51,18 +59,108 @@ builder.Services
 
 // swagger
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    // Define the BearerAuth scheme
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = builder.Configuration["Swagger:SecurityName"],
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = builder.Configuration["Swagger:SecurityScheme"],
+        BearerFormat = builder.Configuration["Swagger:BearerFormat"],
+        In = ParameterLocation.Header,
+        Description = builder.Configuration["Swagger:BearerDescription"]
+    });
+
+    // Apply the scheme globally to all operations
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 // swagger page for each version
 builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseInMemoryDatabase("DemoDb"));
 
+builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
+
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IAuthService, JwtAuthService>();
 
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]!);
+    builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(key)
+        };
+    });
+}
 
 var app = builder.Build();
+
+// Runtime seeding for test purpose
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    //db.Database.Migrate(); // applies migrations if needed
+    var passwordHaser = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
+
+    if (!db.Users.Any())
+    {
+        db.Users.Add(
+        new User { Username = "Hans", PasswordHash = passwordHaser.Hash("1234"), Email = "qihang001@outlook.com" }
+        );
+    }
+
+    if (builder.Environment.IsDevelopment()
+            || builder.Environment.IsEnvironment("Testing"))
+    {
+        if (!db.Products.Any())
+        {
+            var products = Enumerable.Range(1, 100)
+                    .Select(i => new Product
+                    {
+                        Name = $"Product {i}",
+                        Price = Math.Round((decimal)(i * 0.5), 2),
+                        Stock = i % 100
+                    })
+                    .ToArray();
+
+            db.Products.AddRange(products);
+        }
+    }
+
+    db.SaveChanges();
+}
 
 app.UseSwagger();
 
@@ -87,7 +185,11 @@ app.UseSwaggerUI(options =>
 //}
 
 app.UseHttpsRedirection();
-
+app.UseRouting();
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+public partial class Program { } // need this for testing purpose

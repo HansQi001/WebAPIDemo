@@ -1,12 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using WebAPIDemo.Application.Common.Interfaces;
 using WebAPIDemo.Application.Products.DTOs;
 using WebAPIDemo.Domain.Entities;
-using WebAPIDemo.Domain.Interfaces;
 
 namespace WebAPIDemo.APIApp.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ProductsController : ControllerBase
     {
         private readonly IProductRepository _productRepo;
@@ -85,25 +87,6 @@ namespace WebAPIDemo.APIApp.Controllers
             await _productRepo.SaveChangesAsync();
 
             return Ok(existing);
-        }
-
-        [HttpPost]
-        [Route("CreateTestData/{count}")]
-        public async Task<IActionResult> CreateTestData(int count = 500)
-        {
-            var products = Enumerable.Range(1, count)
-                    .Select(i => new Product
-                    {
-                        Name = $"Product {i}",
-                        Price = Math.Round((decimal)(i * 0.5), 2),
-                        Stock = i % 100
-                    })
-                    .ToList();
-
-            await _productRepo.AddRangeAsync(products);
-            await _productRepo.SaveChangesAsync();
-
-            return Ok();
         }
     }
 }

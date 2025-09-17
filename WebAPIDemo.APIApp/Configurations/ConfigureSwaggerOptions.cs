@@ -7,9 +7,13 @@ namespace WebAPIDemo.APIApp.Configurations
     public class ConfigureSwaggerOptions : IConfigureOptions<SwaggerGenOptions>
     {
         private readonly IApiVersionDescriptionProvider _provider;
+        private readonly IConfiguration _config;
 
-        public ConfigureSwaggerOptions(IApiVersionDescriptionProvider provider)
-            => _provider = provider;
+        public ConfigureSwaggerOptions(IApiVersionDescriptionProvider provider, IConfiguration config)
+        {
+            _provider = provider;
+            _config = config;
+        }
 
         public void Configure(SwaggerGenOptions options)
         {
@@ -17,9 +21,9 @@ namespace WebAPIDemo.APIApp.Configurations
             {
                 options.SwaggerDoc(description.GroupName, new()
                 {
-                    Title = "My API",
+                    Title = _config["Swagger:Title"],
                     Version = description.ApiVersion.ToString(),
-                    Description = description.IsDeprecated ? "This API version is deprecated and will be removed in a future release." : null
+                    Description = description.IsDeprecated ? _config["Swagger:Description"] : null
                 });
             }
         }

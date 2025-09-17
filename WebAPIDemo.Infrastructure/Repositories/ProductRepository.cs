@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using WebAPIDemo.Application.Common.Interfaces;
 using WebAPIDemo.Application.Products.DTOs;
 using WebAPIDemo.Domain.Entities;
-using WebAPIDemo.Domain.Interfaces;
 using WebAPIDemo.Infrastructure.Data;
 
 namespace WebAPIDemo.Infrastructure.Repositories
