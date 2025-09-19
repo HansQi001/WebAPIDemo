@@ -39,29 +39,28 @@ You can explore and test the API through Swagger UI:
 
 ## 📬 Access via Postman
 
-When accessing the API through **Postman** (via API Management):
+When accessing the API through **Postman** :
 
 - **Base URL:**  
   ```
-  https://apimanagerdemo.azure-api.net
+  https://webapidemo-g8hhepfng7dqa2hx.australiaeast-01.azurewebsites.net
   ```
 
 - **Required Headers:**
   | Key                         | Value                                                |
   |------------------------------|------------------------------------------------------|
-  | `Ocp-Apim-Subscription-Key` | `abd4a7cbf38a40b6914d522ac78b1ba4`                   |
-  | `Authorization`             | `Bearer [your-jwt-token]`                            |
+  | `Authorization`             | `Bearer [jwt-token]`                            |
 
 - **Steps:**
   1. Fetch a JWT token from:
      ```
-     POST https://apimanagerdemo.azure-api.net/api/Auth/Login
+     POST https://webapidemo-g8hhepfng7dqa2hx.australiaeast-01.azurewebsites.net/api/Auth/Login
      ```
   2. Add both headers above to your Postman request.
   3. Call any API endpoint listed in Swagger UI.  
      Example:
      ```
-     GET https://apimanagerdemo.azure-api.net/api/Products
+     GET https://webapidemo-g8hhepfng7dqa2hx.australiaeast-01.azurewebsites.net/api/Products
      ```
 
 ---
